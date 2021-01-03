@@ -2,6 +2,7 @@
     <string name="settings">Ustawienia</string>
     <string name="reset">Reset</string>
     <string name="undo">Cofnij</string>
+    <string name="start_solver">Znajdź rozwiązanie</string>
     <string name="help">Pomoc</string>
     <string name="new_game">Nowa gra</string>
     <string name="level_status">POZIOM %1$d  CZAS %2$d:%3$02d  RUCHY %4$d  PRZESUNIĘCIA %5$d</string>

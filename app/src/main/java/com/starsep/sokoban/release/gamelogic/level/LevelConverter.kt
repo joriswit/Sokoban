@@ -71,4 +71,30 @@ internal object LevelConverter {
         }
         return result
     }
+
+    @Throws(UnknownTileException::class)
+    fun convertToCommonLevelFormat(level: LevelAbstract): String {
+        val builder = StringBuilder()
+        for (y in 0 until level.height()) {
+            for (x in 0 until level.width) {
+                val pos = Position(y, x)
+                builder.append(when (level.tile(pos)) {
+                    Tile.wall -> CommonLevelFormat.wall
+                    Tile.grass, Tile.ground -> {
+                        if (pos == level.player) CommonLevelFormat.player else CommonLevelFormat.floor
+                    }
+                    Tile.endpoint -> {
+                        if (pos == level.player) CommonLevelFormat.playerOnEndpoint else CommonLevelFormat.endpoint
+                    }
+                    Tile.crate -> CommonLevelFormat.crate
+                    Tile.crateOnEndpoint -> CommonLevelFormat.crateOnEndpoint
+                    else -> {
+                        throw UnknownTileException()
+                    }
+                })
+            }
+            builder.append('\n')
+        }
+        return builder.toString()
+    }
 }

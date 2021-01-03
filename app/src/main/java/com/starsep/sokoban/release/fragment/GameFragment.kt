@@ -1,5 +1,8 @@
 package com.starsep.sokoban.release.fragment
 
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.starsep.sokoban.release.R
 import com.starsep.sokoban.release.database.Database
+import com.starsep.sokoban.release.gamelogic.level.LevelConverter
 import com.starsep.sokoban.release.model.GameModel
 import kotlinx.android.synthetic.main.fragment_game.*
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +25,10 @@ import java.util.*
 class GameFragment : Fragment()
 /*, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener*/ {
     // private lateinit var googleApiClient: GoogleApiClient
+    companion object {
+        const val SOLVER_REQUEST = 5017 // "solv"
+    }
+
     private val gameModel by viewModel<GameModel>()
     private val args: GameFragmentArgs by navArgs()
     private var timer: Timer? = null
@@ -61,6 +69,15 @@ class GameFragment : Fragment()
         settingsButton.visibility = View.GONE
         settingsButton.setOnClickListener {
             findNavController().navigate(GameFragmentDirections.actionGameSettings())
+        }
+
+        val solveIntent = Intent("nl.joriswit.sokosolver.SOLVE")
+        val canStartSolver = requireContext().packageManager.queryIntentActivities(solveIntent, PackageManager.MATCH_DEFAULT_ONLY).size > 0
+        solverButton.visibility = if (canStartSolver) View.VISIBLE else View.INVISIBLE
+        solverButton.setOnClickListener {
+            val level = LevelConverter.convertToCommonLevelFormat(gameModel.level())
+            solveIntent.putExtra("LEVEL", level);
+            startActivityForResult(solveIntent, SOLVER_REQUEST);
         }
     }
 
@@ -132,6 +149,16 @@ class GameFragment : Fragment()
                 )
             }
         )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SOLVER_REQUEST && resultCode == Activity.RESULT_OK) {
+            val solution = data!!.getStringExtra("SOLUTION")
+            if (solution != null) {
+                gameModel.makeMoves(solution)
+            }
+        }
     }
 
     /*override fun onConnected(bundle: Bundle?) {
